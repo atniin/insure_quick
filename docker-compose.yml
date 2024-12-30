@@ -1,0 +1,39 @@
+networks:
+  application:
+    driver: bridge
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    env_file:
+      - .env
+    networks:
+      - application
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        composer install
+        php artisan migrate
+        php artisan serve --host=0.0.0.0 --port=8000
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}      
+    networks:
+      - application
+    container_name: db
